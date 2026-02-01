@@ -1,15 +1,24 @@
-import { createServerClient } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+import { headers } from "next/headers";
 import Link from "next/link";
 import type { PhotoRecord } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   title: "Record — Left to Found",
 };
 
 export default async function LedgerPage() {
-  const supabase = createServerClient();
+  // Force Next.js to treat this as dynamic
+  headers();
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { global: { fetch: (url, init) => fetch(url, { ...init, cache: "no-store" }) } }
+  );
 
   const { data, error } = await supabase
     .from("photos")
