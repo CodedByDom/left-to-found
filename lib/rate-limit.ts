@@ -12,9 +12,11 @@ export function rateLimit(ip: string): { allowed: boolean; remaining: number } {
 
   // Clean stale entries periodically
   if (now - lastCleanup > 5 * 60 * 1000) {
-    for (const [key, entry] of hits.entries()) {
-      if (now > entry.resetAt) hits.delete(key);
-    }
+    const stale: string[] = [];
+    hits.forEach((entry, key) => {
+      if (now > entry.resetAt) stale.push(key);
+    });
+    stale.forEach((key) => hits.delete(key));
     lastCleanup = now;
   }
 

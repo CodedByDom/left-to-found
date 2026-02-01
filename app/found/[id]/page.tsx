@@ -1,9 +1,7 @@
 import { createServerClient } from "@/lib/supabase";
-import { notFound } from "next/navigation";
 import type { PhotoRecord } from "@/lib/types";
 import RecordClient from "./record-client";
 
-// Don't cache — we need fresh found-state on every load
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
