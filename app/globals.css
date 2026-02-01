@@ -6,17 +6,17 @@
   box-sizing: border-box;
 }
 
-/* ── Light theme (default) ── */
+/* ── Light theme ── */
 
 :root {
-  --fg:     #1c1b19;
-  --fg2:    #5c5a55;
-  --fg3:    #908e88;
-  --fg4:    #b5b3ae;
+  --fg:     #1a1918;
+  --fg2:    #4a4843;
+  --fg3:    #6e6c66;
+  --fg4:    #9b9990;
   --bg:     #f4f2ed;
   --bg2:    #eae8e2;
   --bg3:    #e2e0da;
-  --border: #d6d4ce;
+  --border: #ceccC6;
   --mono:   'DM Mono', monospace;
   --serif:  'Cormorant Garamond', serif;
   color-scheme: light dark;
@@ -26,14 +26,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fg:     #e8e6e1;
-    --fg2:    #a8a69f;
-    --fg3:    #7a7872;
-    --fg4:    #55534e;
-    --bg:     #161514;
-    --bg2:    #1e1d1b;
-    --bg3:    #262523;
-    --border: #333230;
+    --fg:     #e4e2dd;
+    --fg2:    #b5b3ad;
+    --fg3:    #8a8880;
+    --fg4:    #5f5d57;
+    --bg:     #141312;
+    --bg2:    #1c1b19;
+    --bg3:    #242321;
+    --border: #3a3836;
   }
 }
 
@@ -57,7 +57,7 @@ body {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  max-width: 680px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 0 2rem;
 }
@@ -83,14 +83,14 @@ body {
   user-select: none;
 }
 .wordmark:hover {
-  color: var(--fg2);
+  color: var(--fg);
 }
 
 .header-dot {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--border);
+  background: var(--fg4);
 }
 
 /* ── Content ── */
@@ -116,7 +116,7 @@ body {
 
 .body-text {
   font-family: var(--serif);
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 300;
   line-height: 1.75;
   color: var(--fg);
@@ -131,7 +131,7 @@ body {
 
 .mono-label {
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 400;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -142,7 +142,7 @@ body {
 
 .quiet-text {
   font-family: var(--serif);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 300;
   color: var(--fg2);
   line-height: 1.7;
@@ -150,7 +150,7 @@ body {
 
 .small-text {
   font-family: var(--serif);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 300;
   color: var(--fg3);
   margin-top: 0.9rem;
@@ -159,7 +159,7 @@ body {
 
 .instruction-text {
   font-family: var(--serif);
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 300;
   font-style: italic;
   color: var(--fg2);
@@ -169,7 +169,7 @@ body {
 
 .empty-text {
   font-family: var(--serif);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 300;
   font-style: italic;
   color: var(--fg4);
@@ -188,11 +188,11 @@ body {
 
 .home-statement p {
   font-family: var(--serif);
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 300;
   line-height: 1.8;
   color: var(--fg);
-  max-width: 440px;
+  max-width: 460px;
 }
 
 .home-statement p + p {
@@ -206,7 +206,7 @@ body {
 .input-row {
   display: flex;
   align-items: stretch;
-  max-width: 220px;
+  max-width: 230px;
 }
 
 .code-input {
@@ -219,7 +219,7 @@ body {
   border: 1px solid var(--border);
   border-right: none;
   padding: 0.7rem 0.9rem;
-  width: 160px;
+  width: 168px;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -237,7 +237,7 @@ body {
   justify-content: center;
   background: transparent;
   border: 1px solid var(--border);
-  padding: 0 0.8rem;
+  padding: 0 0.85rem;
   cursor: pointer;
   color: var(--fg3);
   transition: all 0.2s;
@@ -259,7 +259,7 @@ body {
 
 .quiet-link {
   font-family: var(--mono);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 400;
   letter-spacing: 0.1em;
   color: var(--fg3);
@@ -277,13 +277,13 @@ body {
 
 .primary-btn {
   font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--fg);
   background: transparent;
   border: 1px solid var(--border);
-  padding: 0.7rem 1.6rem;
+  padding: 0.75rem 1.6rem;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -305,7 +305,7 @@ body {
 
 .record-code {
   font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 400;
   letter-spacing: 0.22em;
   color: var(--fg4);
@@ -315,7 +315,7 @@ body {
 
 .record-caption {
   font-family: var(--serif);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 300;
   font-style: italic;
   color: var(--fg2);
@@ -338,7 +338,7 @@ body {
 
 .text-input {
   font-family: var(--serif);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 300;
   color: var(--fg);
   background: transparent;
@@ -346,7 +346,7 @@ body {
   border-bottom: 1px solid var(--border);
   padding: 0.4rem 0;
   width: 100%;
-  max-width: 320px;
+  max-width: 340px;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -371,7 +371,7 @@ body {
   tab-index: -1;
 }
 
-/* ── Ledger ── */
+/* ── Ledger table ── */
 
 .ledger-head {
   display: flex;
@@ -384,7 +384,7 @@ body {
 
 .ledger-title {
   font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 400;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -393,13 +393,11 @@ body {
 
 .ledger-count {
   font-family: var(--mono);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 300;
   letter-spacing: 0.1em;
   color: var(--fg4);
 }
-
-/* Table ledger */
 
 .ledger-table {
   width: 100%;
@@ -408,13 +406,13 @@ body {
 
 .ledger-table thead th {
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 400;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--fg4);
   text-align: left;
-  padding: 0 0 0.9rem 0;
+  padding: 0 0.6rem 1rem 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -429,10 +427,10 @@ body {
 
 .ledger-table td {
   font-family: var(--serif);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 300;
   color: var(--fg2);
-  padding: 1rem 0.5rem 1rem 0;
+  padding: 1.1rem 0.6rem 1.1rem 0;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
   line-height: 1.5;
@@ -440,12 +438,16 @@ body {
 
 .ledger-table td:first-child {
   font-family: var(--mono);
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 500;
   letter-spacing: 0.14em;
   color: var(--fg);
   white-space: nowrap;
-  width: 70px;
+  width: 80px;
+}
+
+.ledger-table td:nth-child(2) {
+  white-space: nowrap;
 }
 
 .ledger-table td:last-child {
@@ -462,11 +464,21 @@ body {
   border-bottom: none;
 }
 
+/* Keep old ledger classes in case they're referenced */
+.ledger-list { display: flex; flex-direction: column; }
+.ledger-row { padding: 1.3rem 0.7rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; margin: 0 -0.7rem; border-radius: 2px; text-decoration: none; color: inherit; display: block; }
+.ledger-row:hover { background: var(--bg2); }
+.ledger-row-top { display: flex; align-items: baseline; gap: 1.15rem; flex-wrap: wrap; }
+.ledger-id { font-family: var(--mono); font-size: 0.88rem; font-weight: 500; letter-spacing: 0.16em; color: var(--fg); }
+.ledger-date { font-family: var(--serif); font-size: 1.05rem; font-weight: 300; color: var(--fg2); }
+.ledger-loc { font-family: var(--serif); font-size: 1rem; font-weight: 300; color: var(--fg3); margin-top: 0.2rem; }
+.ledger-caption { font-family: var(--serif); font-size: 0.95rem; font-weight: 300; font-style: italic; color: var(--fg3); margin-top: 0.3rem; }
+
 /* ── Loading ── */
 
 .loading-text {
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   letter-spacing: 0.12em;
   color: var(--fg4);
   animation: pulse 1.5s ease infinite;
@@ -510,7 +522,7 @@ body {
     padding: 3rem 0 4rem;
   }
   .home-statement p {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
   }
 
   /* Stack table on mobile */
@@ -529,13 +541,17 @@ body {
     border-bottom: 1px solid var(--border);
   }
   .ledger-table td {
-    padding: 0.1rem 0;
+    padding: 0.15rem 0;
     border-bottom: none;
   }
   .ledger-table td:first-child {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.3rem;
   }
   .ledger-table tbody tr:last-child {
     border-bottom: none;
+  }
+
+  .ledger-row-top {
+    gap: 0.7rem;
   }
 }
