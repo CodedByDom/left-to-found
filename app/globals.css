@@ -6,6 +6,8 @@
   box-sizing: border-box;
 }
 
+/* ── Light theme (default) ── */
+
 :root {
   --fg:     #1c1b19;
   --fg2:    #5c5a55;
@@ -13,13 +15,30 @@
   --fg4:    #b5b3ae;
   --bg:     #f4f2ed;
   --bg2:    #eae8e2;
+  --bg3:    #e2e0da;
   --border: #d6d4ce;
   --mono:   'DM Mono', monospace;
   --serif:  'Cormorant Garamond', serif;
+  color-scheme: light dark;
+}
+
+/* ── Dark theme ── */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg:     #e8e6e1;
+    --fg2:    #a8a69f;
+    --fg3:    #7a7872;
+    --fg4:    #55534e;
+    --bg:     #161514;
+    --bg2:    #1e1d1b;
+    --bg3:    #262523;
+    --border: #333230;
+  }
 }
 
 html {
-  font-size: 16px;
+  font-size: 17px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -28,6 +47,7 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--serif);
+  transition: background 0.3s, color 0.3s;
 }
 
 /* ── Shell ── */
@@ -37,7 +57,7 @@ body {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  max-width: 560px;
+  max-width: 680px;
   margin: 0 auto;
   padding: 0 2rem;
 }
@@ -53,7 +73,7 @@ body {
 
 .wordmark {
   font-family: var(--mono);
-  font-size: 0.67rem;
+  font-size: 0.72rem;
   font-weight: 400;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -96,7 +116,7 @@ body {
 
 .body-text {
   font-family: var(--serif);
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: 300;
   line-height: 1.75;
   color: var(--fg);
@@ -111,7 +131,7 @@ body {
 
 .mono-label {
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   font-weight: 400;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -122,7 +142,7 @@ body {
 
 .quiet-text {
   font-family: var(--serif);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 300;
   color: var(--fg2);
   line-height: 1.7;
@@ -130,7 +150,7 @@ body {
 
 .small-text {
   font-family: var(--serif);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 300;
   color: var(--fg3);
   margin-top: 0.9rem;
@@ -139,7 +159,7 @@ body {
 
 .instruction-text {
   font-family: var(--serif);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 300;
   font-style: italic;
   color: var(--fg2);
@@ -149,7 +169,7 @@ body {
 
 .empty-text {
   font-family: var(--serif);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 300;
   font-style: italic;
   color: var(--fg4);
@@ -168,11 +188,11 @@ body {
 
 .home-statement p {
   font-family: var(--serif);
-  font-size: 1.22rem;
+  font-size: 1.35rem;
   font-weight: 300;
   line-height: 1.8;
   color: var(--fg);
-  max-width: 400px;
+  max-width: 440px;
 }
 
 .home-statement p + p {
@@ -186,20 +206,20 @@ body {
 .input-row {
   display: flex;
   align-items: stretch;
-  max-width: 192px;
+  max-width: 220px;
 }
 
 .code-input {
   font-family: var(--mono);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 500;
   letter-spacing: 0.24em;
   color: var(--fg);
   background: transparent;
   border: 1px solid var(--border);
   border-right: none;
-  padding: 0.6rem 0.8rem;
-  width: 144px;
+  padding: 0.7rem 0.9rem;
+  width: 160px;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -217,7 +237,7 @@ body {
   justify-content: center;
   background: transparent;
   border: 1px solid var(--border);
-  padding: 0 0.7rem;
+  padding: 0 0.8rem;
   cursor: pointer;
   color: var(--fg3);
   transition: all 0.2s;
@@ -239,7 +259,7 @@ body {
 
 .quiet-link {
   font-family: var(--mono);
-  font-size: 0.63rem;
+  font-size: 0.7rem;
   font-weight: 400;
   letter-spacing: 0.1em;
   color: var(--fg3);
@@ -257,13 +277,13 @@ body {
 
 .primary-btn {
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--fg);
   background: transparent;
   border: 1px solid var(--border);
-  padding: 0.6rem 1.4rem;
+  padding: 0.7rem 1.6rem;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -285,7 +305,7 @@ body {
 
 .record-code {
   font-family: var(--mono);
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: 0.22em;
   color: var(--fg4);
@@ -295,7 +315,7 @@ body {
 
 .record-caption {
   font-family: var(--serif);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 300;
   font-style: italic;
   color: var(--fg2);
@@ -318,15 +338,15 @@ body {
 
 .text-input {
   font-family: var(--serif);
-  font-size: 1.02rem;
+  font-size: 1.1rem;
   font-weight: 300;
   color: var(--fg);
   background: transparent;
   border: none;
   border-bottom: 1px solid var(--border);
-  padding: 0.35rem 0;
+  padding: 0.4rem 0;
   width: 100%;
-  max-width: 280px;
+  max-width: 320px;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -364,7 +384,7 @@ body {
 
 .ledger-title {
   font-family: var(--mono);
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -373,76 +393,80 @@ body {
 
 .ledger-count {
   font-family: var(--mono);
-  font-size: 0.58rem;
+  font-size: 0.65rem;
   font-weight: 300;
   letter-spacing: 0.1em;
   color: var(--fg4);
 }
 
-.ledger-list {
-  display: flex;
-  flex-direction: column;
+/* Table ledger */
+
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.ledger-row {
-  padding: 1.3rem 0.7rem;
+.ledger-table thead th {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg4);
+  text-align: left;
+  padding: 0 0 0.9rem 0;
   border-bottom: 1px solid var(--border);
+}
+
+.ledger-table tbody tr {
   cursor: pointer;
   transition: background 0.2s;
-  margin: 0 -0.7rem;
-  border-radius: 2px;
-  text-decoration: none;
-  color: inherit;
-  display: block;
 }
-.ledger-row:hover {
+
+.ledger-table tbody tr:hover {
   background: var(--bg2);
 }
 
-.ledger-row-top {
-  display: flex;
-  align-items: baseline;
-  gap: 1.15rem;
-  flex-wrap: wrap;
-}
-
-.ledger-id {
-  font-family: var(--mono);
-  font-size: 0.76rem;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  color: var(--fg);
-}
-
-.ledger-date {
+.ledger-table td {
   font-family: var(--serif);
-  font-size: 0.93rem;
+  font-size: 1.05rem;
   font-weight: 300;
   color: var(--fg2);
+  padding: 1rem 0.5rem 1rem 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.5;
 }
 
-.ledger-loc {
-  font-family: var(--serif);
-  font-size: 0.9rem;
-  font-weight: 300;
+.ledger-table td:first-child {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--fg);
+  white-space: nowrap;
+  width: 70px;
+}
+
+.ledger-table td:last-child {
   color: var(--fg3);
-  margin-top: 0.2rem;
-}
-
-.ledger-caption {
-  font-family: var(--serif);
-  font-size: 0.86rem;
-  font-weight: 300;
   font-style: italic;
-  color: var(--fg3);
-  margin-top: 0.3rem;
+}
+
+.ledger-table td a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ledger-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 /* ── Loading ── */
 
 .loading-text {
   font-family: var(--mono);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   letter-spacing: 0.12em;
   color: var(--fg4);
   animation: pulse 1.5s ease infinite;
@@ -478,7 +502,7 @@ body {
 
 /* ── Mobile ── */
 
-@media (max-width: 480px) {
+@media (max-width: 580px) {
   .shell {
     padding: 0 1.25rem;
   }
@@ -486,9 +510,32 @@ body {
     padding: 3rem 0 4rem;
   }
   .home-statement p {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
-  .ledger-row-top {
-    gap: 0.7rem;
+
+  /* Stack table on mobile */
+  .ledger-table thead {
+    display: none;
+  }
+  .ledger-table,
+  .ledger-table tbody,
+  .ledger-table tr,
+  .ledger-table td {
+    display: block;
+    width: 100%;
+  }
+  .ledger-table tr {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ledger-table td {
+    padding: 0.1rem 0;
+    border-bottom: none;
+  }
+  .ledger-table td:first-child {
+    margin-bottom: 0.25rem;
+  }
+  .ledger-table tbody tr:last-child {
+    border-bottom: none;
   }
 }

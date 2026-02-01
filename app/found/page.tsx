@@ -29,24 +29,28 @@ export default async function LedgerPage() {
       {records.length === 0 ? (
         <p className="empty-text">Nothing has been found yet.</p>
       ) : (
-        <div className="ledger-list">
-          {records.map((r) => (
-            <Link
-              key={r.id}
-              href={`/found/${r.id}`}
-              className="ledger-row"
-            >
-              <div className="ledger-row-top">
-                <span className="ledger-id">{r.id}</span>
-                <span className="ledger-date">Found — {r.found_date}</span>
-              </div>
-              {r.location && <div className="ledger-loc">{r.location}</div>}
-              {r.caption && (
-                <div className="ledger-caption">&ldquo;{r.caption}&rdquo;</div>
-              )}
-            </Link>
-          ))}
-        </div>
+        <table className="ledger-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Found</th>
+              <th>Location</th>
+              <th>Caption</th>
+            </tr>
+          </thead>
+          <tbody>
+            {records.map((r) => (
+              <tr key={r.id}>
+                <td>
+                  <Link href={`/found/${r.id}`}>{r.id}</Link>
+                </td>
+                <td>{r.found_date}</td>
+                <td>{r.location || "\u2014"}</td>
+                <td>{r.caption ? `\u201C${r.caption}\u201D` : "\u2014"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
 
       <Link
