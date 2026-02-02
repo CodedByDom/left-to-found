@@ -11,7 +11,6 @@ export const metadata = {
 };
 
 export default async function LedgerPage() {
-  // Force Next.js to treat this as dynamic
   headers();
 
   const supabase = createClient(
@@ -50,12 +49,10 @@ export default async function LedgerPage() {
           <tbody>
             {records.map((r) => (
               <tr key={r.id}>
-                <td>
-                  <Link href={`/found/${r.id}`}>{r.id}</Link>
-                </td>
-                <td>{r.found_date}</td>
-                <td>{r.location || "\u2014"}</td>
-                <td>{r.caption ? `\u201C${r.caption}\u201D` : "\u2014"}</td>
+                <td><Link href={`/found/${r.id}`}>{r.id}</Link></td>
+                <td><Link href={`/found/${r.id}`}>{r.found_date}</Link></td>
+                <td><Link href={`/found/${r.id}`}>{r.location || "\u2014"}</Link></td>
+                <td><Link href={`/found/${r.id}`}>{r.caption ? `\u201C${r.caption}\u201D` : "\u2014"}</Link></td>
               </tr>
             ))}
           </tbody>
