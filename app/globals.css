@@ -325,8 +325,8 @@ body {
 }
 
 .record-image {
-  flex-shrink: 0;
-  width: 260px;
+  flex: 1;
+  min-width: 0;
 }
 
 .record-image img {
@@ -399,7 +399,6 @@ body {
   width: 0;
   overflow: hidden;
   pointer-events: none;
-  tab-index: -1;
 }
 
 /* ── Ledger table ── */
