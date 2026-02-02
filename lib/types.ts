@@ -7,4 +7,5 @@ export interface PhotoRecord {
   caption: string | null;
   created_at: string;
   found_at: string | null;
+  image_url: string | null;
 }

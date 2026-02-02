@@ -20,60 +20,69 @@ export default function RecordClient({ record }: { record: PhotoRecord }) {
       <div className="fade-in" key="found">
         <span className="record-code">{r.id}</span>
 
-        {confirmed && (
-          <div style={{ marginBottom: "1.25rem" }}>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 18 18"
-              fill="none"
-              style={{ opacity: 0.35 }}
+        <div className="record-layout">
+          <div className="record-details">
+            {confirmed && (
+              <div style={{ marginBottom: "1.25rem" }}>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  style={{ opacity: 0.35 }}
+                >
+                  <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="0.9" />
+                  <path
+                    d="M5.5 9.5l2 2 5-5"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            )}
+
+            {confirmed && (
+              <p className="body-text" style={{ marginBottom: "0.75rem" }}>
+                Marked as found.
+              </p>
+            )}
+
+            <p className="body-text">Found {r.found_date}</p>
+            {r.location && <p className="body-text sub">{r.location}</p>}
+            {r.caption && (
+              <blockquote className="record-caption">&ldquo;{r.caption}&rdquo;</blockquote>
+            )}
+
+            <p className="quiet-text" style={{ marginTop: "2.5rem" }}>
+              The photograph now exists somewhere else.
+            </p>
+            <p className="small-text">
+              If you choose to share it, you can mention that it was found.
+            </p>
+
+            <Link
+              href="/found"
+              className="quiet-link"
+              style={{ marginTop: "3rem", display: "inline-block" }}
             >
-              <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="0.9" />
-              <path
-                d="M5.5 9.5l2 2 5-5"
-                stroke="currentColor"
-                strokeWidth="1"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+              View record →
+            </Link>
           </div>
-        )}
 
-        {confirmed && (
-          <p className="body-text" style={{ marginBottom: "0.75rem" }}>
-            Marked as found.
-          </p>
-        )}
-
-        <p className="body-text">Found {r.found_date}</p>
-        {r.location && <p className="body-text sub">{r.location}</p>}
-        {r.caption && (
-          <blockquote className="record-caption">&ldquo;{r.caption}&rdquo;</blockquote>
-        )}
-
-        <p className="quiet-text" style={{ marginTop: "2.5rem" }}>
-          The photograph now exists somewhere else.
-        </p>
-        <p className="small-text">
-          If you choose to share it, you can mention that it was found.
-        </p>
-
-        <Link
-          href="/found"
-          className="quiet-link"
-          style={{ marginTop: "3rem", display: "inline-block" }}
-        >
-          View record →
-        </Link>
+          {r.image_url && (
+            <div className="record-image">
+              <img src={r.image_url} alt={`Photograph ${r.id}`} />
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   // ── Not yet found ──
   const handleConfirm = async () => {
-    // Honeypot check — bots fill hidden fields
     if (honeypot) return;
 
     setPhase("submitting");
@@ -100,7 +109,7 @@ export default function RecordClient({ record }: { record: PhotoRecord }) {
       const data = await res.json();
       setResult(data.record);
       setConfirmed(true);
-    } catch {
+    } catch (_) {
       setError("Could not connect. Please try again.");
       setPhase("form");
     }
