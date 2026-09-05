@@ -743,7 +743,7 @@ body {
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
   width: 100%;
 }
 
@@ -759,8 +759,7 @@ body {
   overflow: hidden;
 
   /* less tall than before */
-  aspect-ratio: 1 / 1;
-
+  aspect-ratio: 4 / 3;
   border: 0;
   background: var(--bg2);
 }
@@ -930,9 +929,9 @@ body {
    ─────────────── */
 
 /* very large desktop */
-@media (min-width: 1450px) {
+@media (min-width: 1600px) {
   .photo-grid {
-    grid-template-columns: repeat(10, minmax(0, 1fr));
+    grid-template-columns: repeat(9, minmax(0, 1fr));
   }
 }
 
