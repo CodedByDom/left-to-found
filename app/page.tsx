@@ -18,6 +18,15 @@ export default async function HomePage() {
     status: record.status || (record.found ? "found" : "out_there"),
   }));
 
+	//log
+	console.log(
+  records.map((record) => ({
+    id: record.id,
+    image_url: record.image_url,
+    status: record.status,
+  }))
+);
+
   const foundCount = records.filter((r) => r.status === "found").length;
   const outCount = records.filter((r) => r.status !== "found").length;
 
