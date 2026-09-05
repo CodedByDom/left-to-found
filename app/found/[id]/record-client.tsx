@@ -1,90 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { PhotoRecord } from "@/lib/types";
 
+function formatDate(value: string | null | undefined) {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(d);
+}
+
+function daysBetween(start: string | null, end: string | null) {
+  if (!start || !end) return null;
+  const a = new Date(start).getTime();
+  const b = new Date(end).getTime();
+  if (Number.isNaN(a) || Number.isNaN(b)) return null;
+  return Math.max(0, Math.round((b - a) / 86400000));
+}
+
 export default function RecordClient({ record }: { record: PhotoRecord }) {
   const [phase, setPhase] = useState<"idle" | "form" | "submitting">("idle");
-  const [location, setLocation] = useState("");
-  const [caption, setCaption] = useState("");
+  const [finderName, setFinderName] = useState("");
+  const [finderLocation, setFinderLocation] = useState("");
+  const [finderCountry, setFinderCountry] = useState("");
+  const [finderMessage, setFinderMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PhotoRecord>(record);
 
-  // ── Already found ──
-  if (record.found || confirmed) {
-    const r = confirmed ? result : record;
-    return (
-      <div className="fade-in" key="found">
-        <span className="record-code">{r.id}</span>
+  const current = confirmed ? result : record;
+  const isFound = current.status === "found" || current.found === true;
+  const dropDate = formatDate(current.dropped_at || current.hidden_date || null);
+  const foundDate = formatDate(current.found_at || current.found_date || null);
+  const finderLoc = [current.finder_location || current.location, current.finder_country]
+    .filter(Boolean)
+    .join(", ");
+  const timeOutThere = useMemo(
+    () => daysBetween(current.dropped_at, current.found_at),
+    [current.dropped_at, current.found_at]
+  );
 
-        <div className="record-layout">
-          <div className="record-details">
-            {confirmed && (
-              <div style={{ marginBottom: "1.25rem" }}>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  style={{ opacity: 0.35 }}
-                >
-                  <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="0.9" />
-                  <path
-                    d="M5.5 9.5l2 2 5-5"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            )}
-
-            {confirmed && (
-              <p className="body-text" style={{ marginBottom: "0.75rem" }}>
-                Marked as found.
-              </p>
-            )}
-
-            <p className="body-text">Found {r.found_date}</p>
-            {r.location && <p className="body-text sub">{r.location}</p>}
-            {r.caption && (
-              <blockquote className="record-caption">&ldquo;{r.caption}&rdquo;</blockquote>
-            )}
-
-            <p className="quiet-text" style={{ marginTop: "2.5rem" }}>
-              The photograph now exists somewhere else.
-            </p>
-            <p className="small-text">
-              If you choose to share it, you can mention that it was found.
-            </p>
-
-            <Link
-              href="/found"
-              className="quiet-link"
-              style={{ marginTop: "3rem", display: "inline-block" }}
-            >
-              View record →
-            </Link>
-          </div>
-
-          {r.image_url && (
-            <div className="record-image">
-              <img src={r.image_url} alt={`Photograph ${r.id}`} />
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // ── Not yet found ──
   const handleConfirm = async () => {
     if (honeypot) return;
-
     setPhase("submitting");
     setError(null);
 
@@ -94,114 +57,152 @@ export default function RecordClient({ record }: { record: PhotoRecord }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: record.id,
-          location: location.trim(),
-          caption: caption.trim(),
+          finderName: finderName.trim(),
+          finderLocation: finderLocation.trim(),
+          finderCountry: finderCountry.trim(),
+          finderMessage: finderMessage.trim(),
         }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
         setError(data.error || "Something went wrong.");
         setPhase("form");
         return;
       }
 
-      const data = await res.json();
       setResult(data.record);
       setConfirmed(true);
-    } catch (_) {
+    } catch {
       setError("Could not connect. Please try again.");
       setPhase("form");
     }
   };
 
   return (
-    <div className="fade-in">
-      <span className="record-code">{record.id}</span>
+    <article className="artifact fade-in">
+      <div className="artifact-kicker">
+        <span className="record-code">{current.id}</span>
+        <span className={`status-pill ${isFound ? "is-found" : "is-out"}`}>
+          {isFound ? "FOUND" : "OUT THERE"}
+        </span>
+      </div>
 
-      <p className="body-text">
-        This photograph was hidden on {record.hidden_date}
-      </p>
-      <p className="instruction-text">
-        If you have found it, you can mark it here.
-      </p>
+      <header className="artifact-header">
+        <h1 className="artifact-title">{current.title || "Untitled photograph"}</h1>
+        <p className="artifact-meta">
+          {[current.drop_location, current.drop_country].filter(Boolean).join(", ") || "Location withheld"}
+          {dropDate ? ` · ${dropDate}` : ""}
+        </p>
+      </header>
 
-      {phase === "idle" && (
-        <button className="primary-btn fade-in" onClick={() => setPhase("form")}>
-          Mark as found
-        </button>
+      <div className={`artifact-image-shell ${!isFound ? "is-unrevealed" : ""}`}>
+        {current.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={current.image_url}
+            alt={current.title || `Photograph ${current.id}`}
+            className="artifact-image"
+          />
+        ) : (
+          <div className="artifact-image-placeholder">
+            <span>{current.id}</span>
+            <small>photograph to be added</small>
+          </div>
+        )}
+        {!isFound && current.image_url && (
+          <div className="artifact-image-veil">
+            <span>Still out there</span>
+          </div>
+        )}
+      </div>
+
+      {current.story && (
+        <section className="artifact-story">
+          <p>{current.story}</p>
+        </section>
       )}
 
-      {(phase === "form" || phase === "submitting") && (
-        <div className="form-area fade-in">
-          <label className="field">
-            <span className="mono-label">Location</span>
-            <input
-              className="text-input"
-              type="text"
-              placeholder="City, Country"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              disabled={phase === "submitting"}
-              autoFocus
-            />
-          </label>
-          <label className="field">
-            <span className="mono-label">
-              Caption <span className="optional-hint">— optional</span>
-            </span>
-            <input
-              className="text-input"
-              type="text"
-              placeholder="A brief word, if you like"
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
-              disabled={phase === "submitting"}
-            />
-          </label>
+      {!isFound ? (
+        <section className="finder-panel">
+          <p className="finder-intro">
+            This photograph is somewhere out in the world. If you&apos;re holding it, you can become part of its record.
+          </p>
 
-          {/* Honeypot — invisible to humans */}
-          <div className="hp-field" aria-hidden="true">
-            <label>
-              Leave this empty
-              <input
-                type="text"
-                name="website"
-                value={honeypot}
-                onChange={(e) => setHoneypot(e.target.value)}
-                tabIndex={-1}
-                autoComplete="off"
-              />
-            </label>
-          </div>
-
-          {error && (
-            <p
-              className="mono-label"
-              style={{ color: "#a0522d", marginBottom: "1rem" }}
-            >
-              {error}
-            </p>
+          {phase === "idle" && (
+            <button className="primary-btn" onClick={() => setPhase("form")}>
+              I FOUND THIS
+            </button>
           )}
 
-          <button
-            className="primary-btn"
-            onClick={handleConfirm}
-            disabled={phase === "submitting"}
-          >
-            {phase === "submitting" ? "Marking..." : "Confirm"}
-          </button>
-        </div>
+          {(phase === "form" || phase === "submitting") && (
+            <div className="form-area fade-in">
+              <div className="form-grid">
+                <label className="field">
+                  <span className="mono-label">Your name / nickname <span className="optional-hint">— optional</span></span>
+                  <input className="text-input" value={finderName} onChange={(e) => setFinderName(e.target.value)} disabled={phase === "submitting"} />
+                </label>
+                <label className="field">
+                  <span className="mono-label">Where did you find it? <span className="optional-hint">— optional</span></span>
+                  <input className="text-input" placeholder="City" value={finderLocation} onChange={(e) => setFinderLocation(e.target.value)} disabled={phase === "submitting"} />
+                </label>
+                <label className="field">
+                  <span className="mono-label">Country <span className="optional-hint">— optional</span></span>
+                  <input className="text-input" value={finderCountry} onChange={(e) => setFinderCountry(e.target.value)} disabled={phase === "submitting"} />
+                </label>
+              </div>
+
+              <label className="field">
+                <span className="mono-label">Leave something behind <span className="optional-hint">— optional</span></span>
+                <textarea
+                  className="text-input text-area"
+                  placeholder="A note, a thought, or where the photograph is going next."
+                  value={finderMessage}
+                  maxLength={400}
+                  onChange={(e) => setFinderMessage(e.target.value)}
+                  disabled={phase === "submitting"}
+                />
+              </label>
+
+              <div className="hp-field" aria-hidden="true">
+                <label>Leave this empty<input value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" /></label>
+              </div>
+
+              <p className="privacy-note">Your note may be shown on this page after review. Everything is optional.</p>
+              {error && <p className="form-error">{error}</p>}
+
+              <button className="primary-btn" onClick={handleConfirm} disabled={phase === "submitting"}>
+                {phase === "submitting" ? "MARKING..." : "MARK AS FOUND"}
+              </button>
+            </div>
+          )}
+        </section>
+      ) : (
+        <section className="found-panel">
+          {confirmed && <p className="found-confirmation">You found {current.id}. It&apos;s yours now.</p>}
+          <div className="found-rule" />
+          <span className="mono-label">Found</span>
+          <p className="found-date">{foundDate || "Found"}</p>
+          {finderLoc && <p className="found-location">{finderLoc}</p>}
+          {timeOutThere !== null && (
+            <p className="quiet-text">{timeOutThere === 0 ? "Found the same day it was left." : `${timeOutThere} day${timeOutThere === 1 ? "" : "s"} out there.`}</p>
+          )}
+
+          {current.finder_message && current.finder_message_public && (
+            <div className="finder-note">
+              <span className="mono-label">A note from the finder</span>
+              <blockquote>“{current.finder_message}”</blockquote>
+              {current.finder_name && <p>— {current.finder_name}</p>}
+            </div>
+          )}
+
+          {confirmed && current.finder_message && !current.finder_message_public && (
+            <p className="privacy-note">Thanks for leaving a note. It will appear here if approved.</p>
+          )}
+        </section>
       )}
 
-      <Link
-        href="/"
-        className="quiet-link"
-        style={{ marginTop: "3rem", display: "inline-block" }}
-      >
-        ← Back
-      </Link>
-    </div>
+      <Link href="/" className="quiet-link artifact-back">← Left to Found</Link>
+    </article>
   );
 }
