@@ -80,22 +80,9 @@ export default function RecordClient({ record }: { record: PhotoRecord }) {
   };
 
   return (
-    <article className="artifact fade-in">
-      <div className="artifact-kicker">
-        <span className="record-code">{current.id}</span>
-        <span className={`status-pill ${isFound ? "is-found" : "is-out"}`}>
-          {isFound ? "FOUND" : "OUT THERE"}
-        </span>
-      </div>
-
-      <header className="artifact-header">
-        <h1 className="artifact-title">{current.title || "Untitled photograph"}</h1>
-        <p className="artifact-meta">
-          {[current.drop_location, current.drop_country].filter(Boolean).join(", ") || "Location withheld"}
-          {dropDate ? ` · ${dropDate}` : ""}
-        </p>
-      </header>
-
+   <article className="artifact fade-in">
+  <div className="artifact-desktop-layout">
+    <div className="artifact-media-column">
       <div className={`artifact-image-shell ${!isFound ? "is-unrevealed" : ""}`}>
         {current.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -110,12 +97,35 @@ export default function RecordClient({ record }: { record: PhotoRecord }) {
             <small>photograph to be added</small>
           </div>
         )}
+
         {!isFound && current.image_url && (
           <div className="artifact-image-veil">
             <span>Still out there</span>
           </div>
         )}
       </div>
+    </div>
+
+    <div className="artifact-info-column">
+      <div className="artifact-kicker">
+        <span className="record-code">{current.id}</span>
+        <span className={`status-pill ${isFound ? "is-found" : "is-out"}`}>
+          {isFound ? "FOUND" : "OUT THERE"}
+        </span>
+      </div>
+
+      <header className="artifact-header">
+        <h1 className="artifact-title">
+          {current.title || "Untitled photograph"}
+        </h1>
+
+        <p className="artifact-meta">
+          {[current.drop_location, current.drop_country]
+            .filter(Boolean)
+            .join(", ") || "Location withheld"}
+          {dropDate ? ` · ${dropDate}` : ""}
+        </p>
+      </header>
 
       {current.story && (
         <section className="artifact-story">
@@ -126,11 +136,15 @@ export default function RecordClient({ record }: { record: PhotoRecord }) {
       {!isFound ? (
         <section className="finder-panel">
           <p className="finder-intro">
-            This photograph is somewhere out in the world. If you&apos;re holding it, you can become part of its record.
+            This photograph is somewhere out in the world. If you&apos;re
+            holding it, you can become part of its record.
           </p>
 
           {phase === "idle" && (
-            <button className="primary-btn" onClick={() => setPhase("form")}>
+            <button
+              className="primary-btn"
+              onClick={() => setPhase("form")}
+            >
               I FOUND THIS
             </button>
           )}
@@ -139,21 +153,52 @@ export default function RecordClient({ record }: { record: PhotoRecord }) {
             <div className="form-area fade-in">
               <div className="form-grid">
                 <label className="field">
-                  <span className="mono-label">Your name / nickname <span className="optional-hint">— optional</span></span>
-                  <input className="text-input" value={finderName} onChange={(e) => setFinderName(e.target.value)} disabled={phase === "submitting"} />
+                  <span className="mono-label">
+                    Your name / nickname{" "}
+                    <span className="optional-hint">— optional</span>
+                  </span>
+                  <input
+                    className="text-input"
+                    value={finderName}
+                    onChange={(e) => setFinderName(e.target.value)}
+                    disabled={phase === "submitting"}
+                  />
                 </label>
+
                 <label className="field">
-                  <span className="mono-label">Where did you find it? <span className="optional-hint">— optional</span></span>
-                  <input className="text-input" placeholder="City" value={finderLocation} onChange={(e) => setFinderLocation(e.target.value)} disabled={phase === "submitting"} />
+                  <span className="mono-label">
+                    Where did you find it?{" "}
+                    <span className="optional-hint">— optional</span>
+                  </span>
+                  <input
+                    className="text-input"
+                    placeholder="City"
+                    value={finderLocation}
+                    onChange={(e) => setFinderLocation(e.target.value)}
+                    disabled={phase === "submitting"}
+                  />
                 </label>
+
                 <label className="field">
-                  <span className="mono-label">Country <span className="optional-hint">— optional</span></span>
-                  <input className="text-input" value={finderCountry} onChange={(e) => setFinderCountry(e.target.value)} disabled={phase === "submitting"} />
+                  <span className="mono-label">
+                    Country{" "}
+                    <span className="optional-hint">— optional</span>
+                  </span>
+                  <input
+                    className="text-input"
+                    value={finderCountry}
+                    onChange={(e) => setFinderCountry(e.target.value)}
+                    disabled={phase === "submitting"}
+                  />
                 </label>
               </div>
 
               <label className="field">
-                <span className="mono-label">Leave something behind <span className="optional-hint">— optional</span></span>
+                <span className="mono-label">
+                  Leave something behind{" "}
+                  <span className="optional-hint">— optional</span>
+                </span>
+
                 <textarea
                   className="text-input text-area"
                   placeholder="A note, a thought, or where the photograph is going next."
@@ -165,13 +210,29 @@ export default function RecordClient({ record }: { record: PhotoRecord }) {
               </label>
 
               <div className="hp-field" aria-hidden="true">
-                <label>Leave this empty<input value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" /></label>
+                <label>
+                  Leave this empty
+                  <input
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </label>
               </div>
 
-              <p className="privacy-note">Your note may be shown on this page after review. Everything is optional.</p>
+              <p className="privacy-note">
+                Your note may be shown on this page after review.
+                Everything is optional.
+              </p>
+
               {error && <p className="form-error">{error}</p>}
 
-              <button className="primary-btn" onClick={handleConfirm} disabled={phase === "submitting"}>
+              <button
+                className="primary-btn"
+                onClick={handleConfirm}
+                disabled={phase === "submitting"}
+              >
                 {phase === "submitting" ? "MARKING..." : "MARK AS FOUND"}
               </button>
             </div>
@@ -179,30 +240,64 @@ export default function RecordClient({ record }: { record: PhotoRecord }) {
         </section>
       ) : (
         <section className="found-panel">
-          {confirmed && <p className="found-confirmation">You found {current.id}. It&apos;s yours now.</p>}
+          {confirmed && (
+            <p className="found-confirmation">
+              You found {current.id}. It&apos;s yours now.
+            </p>
+          )}
+
           <div className="found-rule" />
+
           <span className="mono-label">Found</span>
+
           <p className="found-date">{foundDate || "Found"}</p>
-          {finderLoc && <p className="found-location">{finderLoc}</p>}
+
+          {finderLoc && (
+            <p className="found-location">{finderLoc}</p>
+          )}
+
           {timeOutThere !== null && (
-            <p className="quiet-text">{timeOutThere === 0 ? "Found the same day it was left." : `${timeOutThere} day${timeOutThere === 1 ? "" : "s"} out there.`}</p>
+            <p className="quiet-text">
+              {timeOutThere === 0
+                ? "Found the same day it was left."
+                : `${timeOutThere} day${
+                    timeOutThere === 1 ? "" : "s"
+                  } out there.`}
+            </p>
           )}
 
-          {current.finder_message && current.finder_message_public && (
-            <div className="finder-note">
-              <span className="mono-label">A note from the finder</span>
-              <blockquote>“{current.finder_message}”</blockquote>
-              {current.finder_name && <p>— {current.finder_name}</p>}
-            </div>
-          )}
+          {current.finder_message &&
+            current.finder_message_public && (
+              <div className="finder-note">
+                <span className="mono-label">
+                  A note from the finder
+                </span>
 
-          {confirmed && current.finder_message && !current.finder_message_public && (
-            <p className="privacy-note">Thanks for leaving a note. It will appear here if approved.</p>
-          )}
+                <blockquote>
+                  “{current.finder_message}”
+                </blockquote>
+
+                {current.finder_name && (
+                  <p>— {current.finder_name}</p>
+                )}
+              </div>
+            )}
+
+          {confirmed &&
+            current.finder_message &&
+            !current.finder_message_public && (
+              <p className="privacy-note">
+                Thanks for leaving a note. It will appear here if approved.
+              </p>
+            )}
         </section>
       )}
 
-      <Link href="/" className="quiet-link artifact-back">← Left to Found</Link>
-    </article>
+      <Link href="/" className="quiet-link artifact-back">
+        ← Left to Found
+      </Link>
+    </div>
+  </div>
+</article>
   );
 }
