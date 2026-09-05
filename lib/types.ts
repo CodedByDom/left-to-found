@@ -1,11 +1,31 @@
+export type PhotoStatus = "out_there" | "found";
+
 export interface PhotoRecord {
-  id: string;           // 4-char code e.g. "A9F2"
-  hidden_date: string;  // e.g. "14 February 2026"
-  found: boolean;
-  found_date: string | null;
-  location: string | null;
-  caption: string | null;
-  created_at: string;
-  found_at: string | null;
+  id: string; // e.g. "LTF-0001"
+  title: string | null;
   image_url: string | null;
+  story: string | null;
+
+  drop_location: string | null;
+  drop_country: string | null;
+  dropped_at: string | null;
+
+  status: PhotoStatus;
+
+  found_at: string | null;
+  finder_name: string | null;
+  finder_location: string | null;
+  finder_country: string | null;
+  finder_message: string | null;
+  finder_message_public: boolean;
+
+  created_at: string;
+  updated_at: string;
+
+  // Legacy v1 fields retained during migration.
+  hidden_date?: string | null;
+  found?: boolean | null;
+  found_date?: string | null;
+  location?: string | null;
+  caption?: string | null;
 }
