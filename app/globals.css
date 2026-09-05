@@ -946,3 +946,44 @@ right: 7px;
     gap: 8px;
   }
 }
+
+/* ── Desktop artifact split layout ── */
+
+.artifact-record-layout {
+  display: block;
+}
+
+@media (min-width: 900px) {
+  .artifact {
+    max-width: 1120px;
+  }
+
+  .artifact-record-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 620px) minmax(300px, 1fr);
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .artifact-record-image {
+    min-width: 0;
+  }
+
+  .artifact-record-info {
+    min-width: 0;
+    padding-top: 0.15rem;
+  }
+
+  .artifact-image-shell {
+    margin-bottom: 0;
+  }
+
+  .artifact-story {
+    margin-top: 0;
+  }
+
+  .finder-panel,
+  .found-panel {
+    margin-top: 2rem;
+  }
+}
