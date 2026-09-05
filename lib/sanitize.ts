@@ -1,13 +1,29 @@
-// Strip HTML tags, trim, enforce max length
+// Strip HTML tags, trim, enforce max length.
 export function sanitize(input: string, maxLength: number = 200): string {
   return input
-    .replace(/<[^>]*>/g, "")   // strip HTML
-    .replace(/[<>"']/g, "")    // strip remaining dangerous chars
+    .replace(/<[^>]*>/g, "")
+    .replace(/[<>]/g, "")
     .trim()
     .slice(0, maxLength);
 }
 
-// Validate photo code format: 4 uppercase alphanumeric chars
+// V2 photo code format: LTF-0001, LTF-0002, ...
 export function isValidCode(code: string): boolean {
-  return /^[A-Z0-9]{4}$/.test(code);
+  return /^LTF-\d{4}$/.test(code);
+}
+
+export function normalizeCode(input: string): string {
+  const raw = input.trim().toUpperCase().replace(/\s+/g, "");
+
+  // Convenience: allow a finder to type only the number.
+  if (/^\d{1,4}$/.test(raw)) {
+    return `LTF-${raw.padStart(4, "0")}`;
+  }
+
+  const digits = raw.replace(/^LTF-?/, "").replace(/\D/g, "").slice(0, 4);
+  if (raw.startsWith("LTF") && digits) {
+    return `LTF-${digits.padStart(4, "0")}`;
+  }
+
+  return raw;
 }
