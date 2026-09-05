@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
-import { sanitize, isValidCode } from "@/lib/sanitize";
+import { sanitize, isValidCode, normalizeCode } from "@/lib/sanitize";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
-  // ── Rate limit ──
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
@@ -18,29 +17,30 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // ── Parse body ──
-  let body: { id?: string; location?: string; caption?: string };
+  let body: {
+    id?: string;
+    finderName?: string;
+    finderLocation?: string;
+    finderCountry?: string;
+    finderMessage?: string;
+  };
+
   try {
     body = await request.json();
-  } catch (_) {
+  } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const { id, location, caption } = body;
-
-  // ── Validate code ──
-  if (!id || !isValidCode(id.toUpperCase())) {
-    return NextResponse.json(
-      { error: "Invalid photo code." },
-      { status: 400 }
-    );
+  const code = normalizeCode(body.id || "");
+  if (!isValidCode(code)) {
+    return NextResponse.json({ error: "Invalid photo code." }, { status: 400 });
   }
 
-  const code = id.toUpperCase();
-  const cleanLocation = location ? sanitize(location, 100) : null;
-  const cleanCaption = caption ? sanitize(caption, 200) : null;
+  const finderName = body.finderName ? sanitize(body.finderName, 80) : null;
+  const finderLocation = body.finderLocation ? sanitize(body.finderLocation, 100) : null;
+  const finderCountry = body.finderCountry ? sanitize(body.finderCountry, 80) : null;
+  const finderMessage = body.finderMessage ? sanitize(body.finderMessage, 400) : null;
 
-  // ── Check record exists and is not already found ──
   const supabase = createServerClient();
 
   const { data: existing, error: fetchError } = await supabase
@@ -50,39 +50,45 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (fetchError || !existing) {
-    return NextResponse.json(
-      { error: "No record exists for this code." },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "No record exists for this code." }, { status: 404 });
   }
 
-  if (existing.found) {
+  const alreadyFound = existing.status === "found" || existing.found === true;
+  if (alreadyFound) {
     return NextResponse.json(
       { error: "This photograph has already been found." },
       { status: 409 }
     );
   }
 
-  // ── Format found date ──
-  const now = new Date();
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
-  const foundDate = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  const foundMoment = new Date();
+  const now = foundMoment.toISOString();
+  const legacyFoundDate = new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(foundMoment);
 
-  // ── Update record ──
   const { data: updated, error: updateError } = await supabase
     .from("photos")
     .update({
-      found: true,
-      found_date: foundDate,
-      found_at: now.toISOString(),
-      location: cleanLocation,
-      caption: cleanCaption,
+      status: "found",
+      found: true, // legacy compatibility during migration
+      found_at: now,
+      found_date: legacyFoundDate, // legacy ledger compatibility
+      finder_name: finderName,
+      finder_location: finderLocation,
+      finder_country: finderCountry,
+      finder_message: finderMessage,
+      finder_message_public: false,
+      location: finderLocation, // legacy compatibility
+      caption: finderMessage,   // legacy compatibility
+      updated_at: now,
     })
     .eq("id", code)
-    .eq("found", false) // extra guard: only update if still not found
+    .eq("status", "out_there")
+    .eq("found", false)
     .select()
     .single();
 
