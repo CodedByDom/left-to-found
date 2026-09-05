@@ -2,10 +2,10 @@ import Link from "next/link";
 import { createServerClient } from "@/lib/supabase";
 import type { PhotoRecord } from "@/lib/types";
 import CodeEntry from "./code-entry";
-
+import { unstable_noStore as noStore } from "next/cache";
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
+export default async function HomePage() {noStore();
   const supabase = createServerClient();
   const { data } = await supabase
     .from("photos")
