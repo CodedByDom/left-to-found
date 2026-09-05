@@ -8,10 +8,19 @@ export function createBrowserClient() {
   );
 }
 
-// Server client (API routes only, bypasses RLS)
+// Public server client for read-only archive queries
 export function createServerClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        fetch: (url, options = {}) =>
+          fetch(url, {
+            ...options,
+            cache: "no-store",
+          }),
+      },
+    }
   );
 }
