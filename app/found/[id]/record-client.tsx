@@ -346,15 +346,16 @@ export default function RecordClient({
               </div>
             )}
 
-            {!isFound &&
-              current.image_url && (
-                <div className="artifact-image-veil">
-                  <span>
-                    Still out
-                    there
-                  </span>
-                </div>
-              )}
+           {!isFound &&
+            !canClaim &&
+            current.image_url && (
+            <div className="artifact-image-veil">
+          <span>
+            Still out
+        there
+      </span>
+    </div>
+  )}  
           </div>
         </div>
 
