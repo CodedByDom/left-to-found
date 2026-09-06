@@ -1,4 +1,8 @@
 import {
+  cookies,
+} from "next/headers";
+
+import {
   createServerClient,
 } from "@/lib/supabase";
 
@@ -18,6 +22,9 @@ import RecordClient from "./record-client";
 
 export const dynamic =
   "force-dynamic";
+
+const CLAIM_COOKIE_NAME =
+  "ltf_claim";
 
 export async function generateMetadata({
   params,
@@ -39,14 +46,9 @@ export async function generateMetadata({
 
 export default async function RecordPage({
   params,
-  searchParams,
 }: {
   params: {
     id: string;
-  };
-
-  searchParams?: {
-    claim?: string;
   };
 }) {
   const id = normalizeCode(
@@ -117,15 +119,18 @@ export default async function RecordPage({
         : "out_there";
   }
 
+  const cookieStore =
+    cookies();
+
   const claimToken =
-    searchParams?.claim ||
-    null;
+    cookieStore.get(
+      CLAIM_COOKIE_NAME
+    )?.value || null;
 
   const canClaim =
     record.status !==
       "found" &&
-    record.found !==
-      true &&
+    record.found !== true &&
     verifyClaimToken(
       claimToken,
       id
@@ -135,11 +140,6 @@ export default async function RecordPage({
     <RecordClient
       record={record}
       canClaim={canClaim}
-      claimToken={
-        canClaim
-          ? claimToken
-          : null
-      }
     />
   );
 }
