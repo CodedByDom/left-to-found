@@ -1,4 +1,8 @@
 import {
+  createHash,
+} from "crypto";
+
+import {
   NextRequest,
   NextResponse,
 } from "next/server";
@@ -8,17 +12,35 @@ import {
 } from "@/lib/supabase";
 
 import {
-  isValidCode,
-  normalizeCode,
-} from "@/lib/sanitize";
-
-import {
   rateLimit,
 } from "@/lib/rate-limit";
 
 import {
   createClaimToken,
 } from "@/lib/claim-token";
+
+const CLAIM_COOKIE_NAME =
+  "ltf_claim";
+
+const CLAIM_COOKIE_MAX_AGE =
+  60 * 60;
+
+function normalizeClaimCode(
+  value: string
+) {
+  return value
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "");
+}
+
+function hashClaimCode(
+  value: string
+) {
+  return createHash("sha256")
+    .update(value)
+    .digest("hex");
+}
 
 export async function POST(
   request: NextRequest
@@ -68,21 +90,33 @@ export async function POST(
     );
   }
 
-  const code = normalizeCode(
-    body.code || ""
-  );
+  const claimCode =
+    normalizeClaimCode(
+      body.code || ""
+    );
 
-  if (!isValidCode(code)) {
+  if (
+    claimCode.length < 10 ||
+    claimCode.length > 40 ||
+    !/^[A-Z0-9-]+$/.test(
+      claimCode
+    )
+  ) {
     return NextResponse.json(
       {
         error:
-          "That doesn't look like a Left to Found code.",
+          "That doesn't look like a Left to Found finder code.",
       },
       {
         status: 400,
       }
     );
   }
+
+  const claimCodeHash =
+    hashClaimCode(
+      claimCode
+    );
 
   const supabase =
     createServerClient();
@@ -92,15 +126,20 @@ export async function POST(
     error,
   } = await supabase
     .from("photos")
-    .select("id, status, found")
-    .eq("id", code)
+    .select(
+      "id, status, found"
+    )
+    .eq(
+      "claim_code_hash",
+      claimCodeHash
+    )
     .single();
 
   if (error || !record) {
     return NextResponse.json(
       {
         error:
-          "No photograph exists for that code.",
+          "No photograph exists for that finder code.",
       },
       {
         status: 404,
@@ -109,13 +148,15 @@ export async function POST(
   }
 
   const isFound =
-    record.status === "found" ||
+    record.status ===
+      "found" ||
     record.found === true;
 
   /*
-   * A valid physical code may still
-   * open an already-found record,
-   * but there is nothing left to claim.
+   * Already-found photographs
+   * can still open their public
+   * record, but no claim session
+   * is created.
    */
   if (isFound) {
     return NextResponse.json(
@@ -134,14 +175,40 @@ export async function POST(
       record.id
     );
 
-  return NextResponse.json(
+  const response =
+    NextResponse.json(
+      {
+        id: record.id,
+        alreadyFound: false,
+      },
+      {
+        status: 200,
+      }
+    );
+
+  /*
+   * Permission to claim the
+   * photograph is stored only in
+   * an HttpOnly cookie.
+   *
+   * JavaScript cannot read it,
+   * and it never appears in the
+   * URL.
+   */
+  response.cookies.set(
+    CLAIM_COOKIE_NAME,
+    claimToken,
     {
-      id: record.id,
-      claimToken,
-      alreadyFound: false,
-    },
-    {
-      status: 200,
+      httpOnly: true,
+      sameSite: "lax",
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+      maxAge:
+        CLAIM_COOKIE_MAX_AGE,
+      path: "/",
     }
   );
+
+  return response;
 }
