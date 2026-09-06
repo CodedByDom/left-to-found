@@ -313,12 +313,12 @@ export default function RecordClient({
       <div className="artifact-record-layout">
         <div className="artifact-record-image">
           <div
-            className={`artifact-image-shell ${
-              !isFound
-                ? "is-unrevealed"
-                : ""
+              className={`artifact-image-shell ${
+              !isFound && !canClaim
+              ? "is-unrevealed"
+              : ""
             }`}
-          >
+            >
             {current.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
