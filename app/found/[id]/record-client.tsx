@@ -1,87 +1,169 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useMemo,
+  useState,
+} from "react";
+
 import Link from "next/link";
-import type { PhotoRecord } from "@/lib/types";
 
-function formatDate(value: string | null | undefined) {
-  if (!value) return null;
+import type {
+  PhotoRecord,
+} from "@/lib/types";
 
-  const d = new Date(value);
+function formatDate(
+  value:
+    | string
+    | null
+    | undefined
+) {
+  if (!value) {
+    return null;
+  }
 
-  if (Number.isNaN(d.getTime())) {
+  const d =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      d.getTime()
+    )
+  ) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("en", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(d);
+  return new Intl.DateTimeFormat(
+    "en",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }
+  ).format(d);
 }
 
 function daysBetween(
   start: string | null,
   end: string | null
 ) {
-  if (!start || !end) {
+  if (
+    !start ||
+    !end
+  ) {
     return null;
   }
 
-  const a = new Date(start).getTime();
-  const b = new Date(end).getTime();
+  const a =
+    new Date(
+      start
+    ).getTime();
 
-  if (Number.isNaN(a) || Number.isNaN(b)) {
+  const b =
+    new Date(
+      end
+    ).getTime();
+
+  if (
+    Number.isNaN(a) ||
+    Number.isNaN(b)
+  ) {
     return null;
   }
 
   return Math.max(
     0,
-    Math.round((b - a) / 86400000)
+    Math.round(
+      (b - a) /
+        86400000
+    )
   );
 }
 
 export default function RecordClient({
   record,
+  canClaim = false,
+  claimToken = null,
 }: {
   record: PhotoRecord;
+  canClaim?: boolean;
+  claimToken?:
+    | string
+    | null;
 }) {
-  const [phase, setPhase] = useState<
-    "idle" | "form" | "submitting"
-  >("idle");
+  const [phase, setPhase] =
+    useState<
+      | "form"
+      | "submitting"
+    >("form");
 
-  const [finderName, setFinderName] = useState("");
-  const [finderLocation, setFinderLocation] =
-    useState("");
-  const [finderCountry, setFinderCountry] =
-    useState("");
-  const [finderMessage, setFinderMessage] =
-    useState("");
-  const [honeypot, setHoneypot] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
-  const [error, setError] = useState<
+  const [
+    finderName,
+    setFinderName,
+  ] = useState("");
+
+  const [
+    finderLocation,
+    setFinderLocation,
+  ] = useState("");
+
+  const [
+    finderCountry,
+    setFinderCountry,
+  ] = useState("");
+
+  const [
+    finderMessage,
+    setFinderMessage,
+  ] = useState("");
+
+  const [
+    honeypot,
+    setHoneypot,
+  ] = useState("");
+
+  const [
+    confirmed,
+    setConfirmed,
+  ] = useState(false);
+
+  const [
+    error,
+    setError,
+  ] = useState<
     string | null
   >(null);
-  const [result, setResult] =
-    useState<PhotoRecord>(record);
 
-  const current = confirmed ? result : record;
+  const [
+    result,
+    setResult,
+  ] =
+    useState<PhotoRecord>(
+      record
+    );
+
+  const current =
+    confirmed
+      ? result
+      : record;
 
   const isFound =
-    current.status === "found" ||
+    current.status ===
+      "found" ||
     current.found === true;
 
-  const dropDate = formatDate(
-    current.dropped_at ||
-      current.hidden_date ||
-      null
-  );
+  const dropDate =
+    formatDate(
+      current.dropped_at ||
+        current.hidden_date ||
+        null
+    );
 
-  const foundDate = formatDate(
-    current.found_at ||
-      current.found_date ||
-      null
-  );
+  const foundDate =
+    formatDate(
+      current.found_at ||
+        current.found_date ||
+        null
+    );
 
   const finderLoc = [
     current.finder_location ||
@@ -91,61 +173,110 @@ export default function RecordClient({
     .filter(Boolean)
     .join(", ");
 
-  const timeOutThere = useMemo(
-    () =>
-      daysBetween(
+  const timeOutThere =
+    useMemo(
+      () =>
+        daysBetween(
+          current.dropped_at,
+          current.found_at
+        ),
+      [
         current.dropped_at,
-        current.found_at
-      ),
-    [current.dropped_at, current.found_at]
-  );
+        current.found_at,
+      ]
+    );
 
-  const handleConfirm = async () => {
-    if (honeypot) {
-      return;
-    }
-
-    setPhase("submitting");
-    setError(null);
-
-    try {
-      const res = await fetch("/api/found", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: record.id,
-          finderName: finderName.trim(),
-          finderLocation:
-            finderLocation.trim(),
-          finderCountry:
-            finderCountry.trim(),
-          finderMessage:
-            finderMessage.trim(),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(
-          data.error ||
-            "Something went wrong."
-        );
-        setPhase("form");
+  const handleConfirm =
+    async () => {
+      if (honeypot) {
         return;
       }
 
-      setResult(data.record);
-      setConfirmed(true);
-    } catch {
-      setError(
-        "Could not connect. Please try again."
+      if (
+        !canClaim ||
+        !claimToken
+      ) {
+        setError(
+          "This finder session is no longer valid. Enter the code printed on the photograph again."
+        );
+
+        return;
+      }
+
+      setPhase(
+        "submitting"
       );
-      setPhase("form");
-    }
-  };
+
+      setError(null);
+
+      try {
+        const res =
+          await fetch(
+            "/api/found",
+            {
+              method:
+                "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify({
+                  id:
+                    record.id,
+
+                  claimToken,
+
+                  finderName:
+                    finderName.trim(),
+
+                  finderLocation:
+                    finderLocation.trim(),
+
+                  finderCountry:
+                    finderCountry.trim(),
+
+                  finderMessage:
+                    finderMessage.trim(),
+                }),
+            }
+          );
+
+        const data =
+          await res.json();
+
+        if (!res.ok) {
+          setError(
+            data.error ||
+              "Something went wrong."
+          );
+
+          setPhase(
+            "form"
+          );
+
+          return;
+        }
+
+        setResult(
+          data.record
+        );
+
+        setConfirmed(
+          true
+        );
+      } catch {
+        setError(
+          "Could not connect. Please try again."
+        );
+
+        setPhase(
+          "form"
+        );
+      }
+    };
 
   return (
     <article className="artifact fade-in">
@@ -161,7 +292,9 @@ export default function RecordClient({
               : "is-out"
           }`}
         >
-          {isFound ? "FOUND" : "OUT THERE"}
+          {isFound
+            ? "FOUND"
+            : "OUT THERE"}
         </span>
       </div>
 
@@ -198,7 +331,9 @@ export default function RecordClient({
             {current.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={current.image_url}
+                src={
+                  current.image_url
+                }
                 alt={
                   current.title ||
                   `Photograph ${current.id}`
@@ -207,9 +342,15 @@ export default function RecordClient({
               />
             ) : (
               <div className="artifact-image-placeholder">
-                <span>{current.id}</span>
+                <span>
+                  {
+                    current.id
+                  }
+                </span>
+
                 <small>
-                  photograph to be added
+                  photograph to
+                  be added
                 </small>
               </div>
             )}
@@ -218,7 +359,8 @@ export default function RecordClient({
               current.image_url && (
                 <div className="artifact-image-veil">
                   <span>
-                    Still out there
+                    Still out
+                    there
                   </span>
                 </div>
               )}
@@ -228,50 +370,71 @@ export default function RecordClient({
         <div className="artifact-record-info">
           {current.story && (
             <section className="artifact-story">
-              <p>{current.story}</p>
+              <p>
+                {
+                  current.story
+                }
+              </p>
             </section>
           )}
 
-          {!isFound ? (
-            <section className="finder-panel">
-              <p className="finder-intro">
-                This photograph is somewhere
-                out in the world. If
-                you&apos;re holding it, you
-                can become part of its
-                record.
-              </p>
+          {!isFound &&
+            !canClaim && (
+              <section className="finder-panel">
+                <p className="finder-intro">
+                  This photograph
+                  is somewhere out
+                  in the world.
+                </p>
 
-              {phase === "idle" && (
-                <button
-                  className="primary-btn"
-                  onClick={() =>
-                    setPhase("form")
-                  }
-                >
-                  I FOUND THIS
-                </button>
-              )}
+                <p className="privacy-note">
+                  If you&apos;re
+                  holding it,
+                  enter the code
+                  printed on the
+                  photograph from
+                  the archive.
+                </p>
+              </section>
+            )}
 
-              {(phase === "form" ||
-                phase ===
-                  "submitting") && (
+          {!isFound &&
+            canClaim && (
+              <section className="finder-panel">
+                <p className="finder-intro">
+                  You&apos;ve
+                  verified the
+                  code printed on
+                  this photograph.
+                  Add where it was
+                  found, or leave
+                  something behind.
+                </p>
+
                 <div className="form-area fade-in">
                   <div className="form-grid">
                     <label className="field">
                       <span className="mono-label">
-                        Your name / nickname{" "}
+                        Your name /
+                        nickname{" "}
                         <span className="optional-hint">
-                          — optional
+                          —
+                          optional
                         </span>
                       </span>
 
                       <input
                         className="text-input"
-                        value={finderName}
-                        onChange={(e) =>
+                        value={
+                          finderName
+                        }
+                        onChange={(
+                          e
+                        ) =>
                           setFinderName(
-                            e.target.value
+                            e
+                              .target
+                              .value
                           )
                         }
                         disabled={
@@ -283,10 +446,12 @@ export default function RecordClient({
 
                     <label className="field">
                       <span className="mono-label">
-                        Where did you find
+                        Where did
+                        you find
                         it?{" "}
                         <span className="optional-hint">
-                          — optional
+                          —
+                          optional
                         </span>
                       </span>
 
@@ -296,9 +461,13 @@ export default function RecordClient({
                         value={
                           finderLocation
                         }
-                        onChange={(e) =>
+                        onChange={(
+                          e
+                        ) =>
                           setFinderLocation(
-                            e.target.value
+                            e
+                              .target
+                              .value
                           )
                         }
                         disabled={
@@ -312,7 +481,8 @@ export default function RecordClient({
                       <span className="mono-label">
                         Country{" "}
                         <span className="optional-hint">
-                          — optional
+                          —
+                          optional
                         </span>
                       </span>
 
@@ -321,9 +491,13 @@ export default function RecordClient({
                         value={
                           finderCountry
                         }
-                        onChange={(e) =>
+                        onChange={(
+                          e
+                        ) =>
                           setFinderCountry(
-                            e.target.value
+                            e
+                              .target
+                              .value
                           )
                         }
                         disabled={
@@ -336,10 +510,12 @@ export default function RecordClient({
 
                   <label className="field">
                     <span className="mono-label">
-                      Leave something
+                      Leave
+                      something
                       behind{" "}
                       <span className="optional-hint">
-                        — optional
+                        —
+                        optional
                       </span>
                     </span>
 
@@ -349,10 +525,16 @@ export default function RecordClient({
                       value={
                         finderMessage
                       }
-                      maxLength={400}
-                      onChange={(e) =>
+                      maxLength={
+                        400
+                      }
+                      onChange={(
+                        e
+                      ) =>
                         setFinderMessage(
-                          e.target.value
+                          e
+                            .target
+                            .value
                         )
                       }
                       disabled={
@@ -367,24 +549,36 @@ export default function RecordClient({
                     aria-hidden="true"
                   >
                     <label>
-                      Leave this empty
+                      Leave this
+                      empty
+
                       <input
-                        value={honeypot}
-                        onChange={(e) =>
+                        value={
+                          honeypot
+                        }
+                        onChange={(
+                          e
+                        ) =>
                           setHoneypot(
-                            e.target.value
+                            e
+                              .target
+                              .value
                           )
                         }
-                        tabIndex={-1}
+                        tabIndex={
+                          -1
+                        }
                         autoComplete="off"
                       />
                     </label>
                   </div>
 
                   <p className="privacy-note">
-                    Your note may be shown
-                    on this page after
-                    review. Everything is
+                    Your note may
+                    be shown on
+                    this page
+                    after review.
+                    Everything is
                     optional.
                   </p>
 
@@ -410,15 +604,17 @@ export default function RecordClient({
                       : "MARK AS FOUND"}
                   </button>
                 </div>
-              )}
-            </section>
-          ) : (
+              </section>
+            )}
+
+          {isFound && (
             <section className="found-panel">
               {confirmed && (
                 <p className="found-confirmation">
                   You found{" "}
                   {current.id}.
-                  It&apos;s yours now.
+                  It&apos;s yours
+                  now.
                 </p>
               )}
 
@@ -429,22 +625,27 @@ export default function RecordClient({
               </span>
 
               <p className="found-date">
-                {foundDate || "Found"}
+                {foundDate ||
+                  "Found"}
               </p>
 
               {finderLoc && (
                 <p className="found-location">
-                  {finderLoc}
+                  {
+                    finderLoc
+                  }
                 </p>
               )}
 
               {timeOutThere !==
                 null && (
                 <p className="quiet-text">
-                  {timeOutThere === 0
+                  {timeOutThere ===
+                  0
                     ? "Found the same day it was left."
                     : `${timeOutThere} day${
-                        timeOutThere === 1
+                        timeOutThere ===
+                        1
                           ? ""
                           : "s"
                       } out there.`}
@@ -455,7 +656,8 @@ export default function RecordClient({
                 current.finder_message_public && (
                   <div className="finder-note">
                     <span className="mono-label">
-                      A note from the
+                      A note
+                      from the
                       finder
                     </span>
 
@@ -482,9 +684,12 @@ export default function RecordClient({
                 current.finder_message &&
                 !current.finder_message_public && (
                   <p className="privacy-note">
-                    Thanks for leaving a
-                    note. It will appear
-                    here if approved.
+                    Thanks for
+                    leaving a
+                    note. It
+                    will appear
+                    here if
+                    approved.
                   </p>
                 )}
             </section>
