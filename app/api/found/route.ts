@@ -21,6 +21,9 @@ import {
   verifyClaimToken,
 } from "@/lib/claim-token";
 
+const CLAIM_COOKIE_NAME =
+  "ltf_claim";
+
 export async function POST(
   request: NextRequest
 ) {
@@ -52,8 +55,6 @@ export async function POST(
 
   let body: {
     id?: string;
-    claimToken?: string;
-
     finderName?: string;
     finderLocation?: string;
     finderCountry?: string;
@@ -92,16 +93,21 @@ export async function POST(
     );
   }
 
+  const claimToken =
+    request.cookies.get(
+      CLAIM_COOKIE_NAME
+    )?.value;
+
   if (
     !verifyClaimToken(
-      body.claimToken,
+      claimToken,
       code
     )
   ) {
     return NextResponse.json(
       {
         error:
-          "This finder session is invalid or has expired. Enter the code printed on the photograph again.",
+          "This finder session is invalid or has expired. Enter the finder code printed on the photograph again.",
       },
       {
         status: 403,
@@ -267,13 +273,35 @@ export async function POST(
     );
   }
 
-  return NextResponse.json(
+  const response =
+    NextResponse.json(
+      {
+        record:
+          updated,
+      },
+      {
+        status: 200,
+      }
+    );
+
+  /*
+   * The photograph has now been
+   * claimed, so remove the claim
+   * permission immediately.
+   */
+  response.cookies.set(
+    CLAIM_COOKIE_NAME,
+    "",
     {
-      record:
-        updated,
-    },
-    {
-      status: 200,
+      httpOnly: true,
+      sameSite: "lax",
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+      maxAge: 0,
+      path: "/",
     }
   );
+
+  return response;
 }
