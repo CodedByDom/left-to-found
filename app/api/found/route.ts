@@ -1,97 +1,279 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase";
-import { sanitize, isValidCode } from "@/lib/sanitize";
-import { rateLimit } from "@/lib/rate-limit";
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
 
-export async function POST(request: NextRequest) {
-  // ── Rate limit ──
+import {
+  createServerClient,
+} from "@/lib/supabase";
+
+import {
+  sanitize,
+  isValidCode,
+  normalizeCode,
+} from "@/lib/sanitize";
+
+import {
+  rateLimit,
+} from "@/lib/rate-limit";
+
+import {
+  verifyClaimToken,
+} from "@/lib/claim-token";
+
+export async function POST(
+  request: NextRequest
+) {
   const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
+    request.headers
+      .get("x-forwarded-for")
+      ?.split(",")[0]
+      ?.trim() ||
+    request.headers.get(
+      "x-real-ip"
+    ) ||
     "unknown";
 
-  const limit = rateLimit(ip);
+  const limit = rateLimit(
+    `found:${ip}`
+  );
+
   if (!limit.allowed) {
     return NextResponse.json(
-      { error: "Too many requests. Please wait a moment." },
-      { status: 429 }
+      {
+        error:
+          "Too many requests. Please wait a moment.",
+      },
+      {
+        status: 429,
+      }
     );
   }
 
-  // ── Parse body ──
-  let body: { id?: string; location?: string; caption?: string };
+  let body: {
+    id?: string;
+    claimToken?: string;
+
+    finderName?: string;
+    finderLocation?: string;
+    finderCountry?: string;
+    finderMessage?: string;
+  };
+
   try {
-    body = await request.json();
-  } catch (_) {
-    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
-  }
-
-  const { id, location, caption } = body;
-
-  // ── Validate code ──
-  if (!id || !isValidCode(id.toUpperCase())) {
+    body =
+      await request.json();
+  } catch {
     return NextResponse.json(
-      { error: "Invalid photo code." },
-      { status: 400 }
+      {
+        error:
+          "Invalid request.",
+      },
+      {
+        status: 400,
+      }
     );
   }
 
-  const code = id.toUpperCase();
-  const cleanLocation = location ? sanitize(location, 100) : null;
-  const cleanCaption = caption ? sanitize(caption, 200) : null;
+  const code =
+    normalizeCode(
+      body.id || ""
+    );
 
-  // ── Check record exists and is not already found ──
-  const supabase = createServerClient();
+  if (!isValidCode(code)) {
+    return NextResponse.json(
+      {
+        error:
+          "Invalid photo code.",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
 
-  const { data: existing, error: fetchError } = await supabase
+  if (
+    !verifyClaimToken(
+      body.claimToken,
+      code
+    )
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "This finder session is invalid or has expired. Enter the code printed on the photograph again.",
+      },
+      {
+        status: 403,
+      }
+    );
+  }
+
+  const finderName =
+    body.finderName
+      ? sanitize(
+          body.finderName,
+          80
+        )
+      : null;
+
+  const finderLocation =
+    body.finderLocation
+      ? sanitize(
+          body.finderLocation,
+          100
+        )
+      : null;
+
+  const finderCountry =
+    body.finderCountry
+      ? sanitize(
+          body.finderCountry,
+          80
+        )
+      : null;
+
+  const finderMessage =
+    body.finderMessage
+      ? sanitize(
+          body.finderMessage,
+          400
+        )
+      : null;
+
+  const supabase =
+    createServerClient();
+
+  const {
+    data: existing,
+    error: fetchError,
+  } = await supabase
     .from("photos")
     .select("*")
     .eq("id", code)
     .single();
 
-  if (fetchError || !existing) {
+  if (
+    fetchError ||
+    !existing
+  ) {
     return NextResponse.json(
-      { error: "No record exists for this code." },
-      { status: 404 }
+      {
+        error:
+          "No record exists for this code.",
+      },
+      {
+        status: 404,
+      }
     );
   }
 
-  if (existing.found) {
+  const alreadyFound =
+    existing.status ===
+      "found" ||
+    existing.found === true;
+
+  if (alreadyFound) {
     return NextResponse.json(
-      { error: "This photograph has already been found." },
-      { status: 409 }
+      {
+        error:
+          "This photograph has already been found.",
+      },
+      {
+        status: 409,
+      }
     );
   }
 
-  // ── Format found date ──
-  const now = new Date();
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
-  const foundDate = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  const foundMoment =
+    new Date();
 
-  // ── Update record ──
-  const { data: updated, error: updateError } = await supabase
+  const now =
+    foundMoment.toISOString();
+
+  const legacyFoundDate =
+    new Intl.DateTimeFormat(
+      "en",
+      {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }
+    ).format(
+      foundMoment
+    );
+
+  const {
+    data: updated,
+    error: updateError,
+  } = await supabase
     .from("photos")
     .update({
+      status: "found",
       found: true,
-      found_date: foundDate,
-      found_at: now.toISOString(),
-      location: cleanLocation,
-      caption: cleanCaption,
+
+      found_at: now,
+      found_date:
+        legacyFoundDate,
+
+      finder_name:
+        finderName,
+
+      finder_location:
+        finderLocation,
+
+      finder_country:
+        finderCountry,
+
+      finder_message:
+        finderMessage,
+
+      finder_message_public:
+        false,
+
+      location:
+        finderLocation,
+
+      caption:
+        finderMessage,
+
+      updated_at: now,
     })
     .eq("id", code)
-    .eq("found", false) // extra guard: only update if still not found
+    .eq(
+      "status",
+      "out_there"
+    )
+    .eq(
+      "found",
+      false
+    )
     .select()
     .single();
 
-  if (updateError || !updated) {
+  if (
+    updateError ||
+    !updated
+  ) {
     return NextResponse.json(
-      { error: "Could not mark as found. Please try again." },
-      { status: 500 }
+      {
+        error:
+          "Could not mark as found. Please try again.",
+      },
+      {
+        status: 500,
+      }
     );
   }
 
-  return NextResponse.json({ record: updated }, { status: 200 });
+  return NextResponse.json(
+    {
+      record:
+        updated,
+    },
+    {
+      status: 200,
+    }
+  );
 }
