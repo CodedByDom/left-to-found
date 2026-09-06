@@ -10,21 +10,28 @@ import {
 } from "next/navigation";
 
 export default function CodeEntry() {
-  const router = useRouter();
+  const router =
+    useRouter();
 
   const [code, setCode] =
     useState("");
 
-  const [shake, setShake] =
-    useState(false);
+  const [
+    shake,
+    setShake,
+  ] = useState(false);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
-  const [error, setError] =
-    useState<string | null>(
-      null
-    );
+  const [
+    error,
+    setError,
+  ] = useState<
+    string | null
+  >(null);
 
   const inputRef =
     useRef<HTMLInputElement>(
@@ -49,90 +56,81 @@ export default function CodeEntry() {
     inputRef.current?.focus();
   };
 
-  const submit = async () => {
-    if (loading) {
-      return;
-    }
-
-    const normalized =
-      code
-        .trim()
-        .toUpperCase();
-
-    if (!normalized) {
-      invalid();
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res =
-        await fetch(
-          "/api/claim",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body: JSON.stringify({
-              code: normalized,
-            }),
-          }
-        );
-
-      const data =
-        await res.json();
-
-      if (!res.ok) {
-        invalid(
-          data.error ||
-            "That code could not be verified."
-        );
-
-        setLoading(false);
+  const submit =
+    async () => {
+      if (loading) {
         return;
       }
 
-      /*
-       * Already found photographs
-       * simply open their public record.
-       */
-      if (
-        data.alreadyFound
-      ) {
+      const normalized =
+        code
+          .trim()
+          .toUpperCase();
+
+      if (!normalized) {
+        invalid();
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res =
+          await fetch(
+            "/api/claim",
+            {
+              method:
+                "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify({
+                  code:
+                    normalized,
+                }),
+            }
+          );
+
+        const data =
+          await res.json();
+
+        if (!res.ok) {
+          invalid(
+            data.error ||
+              "That finder code could not be verified."
+          );
+
+          setLoading(false);
+
+          return;
+        }
+
+        /*
+         * The claim permission is
+         * now stored in an HttpOnly
+         * cookie by the server.
+         *
+         * Nothing secret is placed
+         * in the URL.
+         */
         router.push(
           `/found/${encodeURIComponent(
             data.id
           )}`
         );
+      } catch {
+        invalid(
+          "Could not verify the finder code. Please try again."
+        );
 
-        return;
+        setLoading(false);
       }
-
-      /*
-       * Unfound photographs receive a
-       * short-lived signed permission.
-       */
-      router.push(
-        `/found/${encodeURIComponent(
-          data.id
-        )}?claim=${encodeURIComponent(
-          data.claimToken
-        )}`
-      );
-    } catch {
-      invalid(
-        "Could not verify the code. Please try again."
-      );
-
-      setLoading(false);
-    }
-  };
+    };
 
   return (
     <div className="finder-code-panel">
@@ -142,8 +140,8 @@ export default function CodeEntry() {
         </span>
 
         <p className="finder-code-copy">
-          Enter the code printed on
-          the photograph.
+          Enter the finder code
+          printed on the photograph.
         </p>
 
         {error && (
@@ -175,7 +173,7 @@ export default function CodeEntry() {
                 )
                 .slice(
                   0,
-                  12
+                  40
                 )
             )
           }
@@ -187,17 +185,17 @@ export default function CodeEntry() {
               submit();
             }
           }}
-          placeholder="LTF-0001"
+          placeholder="LTF7-K2M9-X4P8"
           spellCheck={false}
           autoComplete="off"
-          aria-label="Photograph code"
+          aria-label="Finder code"
           disabled={loading}
         />
 
         <button
           className="arrow-btn"
           onClick={submit}
-          aria-label="Verify photograph code"
+          aria-label="Verify finder code"
           disabled={loading}
         >
           {loading ? (
